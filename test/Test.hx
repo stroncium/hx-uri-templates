@@ -35,7 +35,7 @@ class Test{
     var suiteRes = {passed:0, failed:0, total:0};
     for(groupName in testGroups.keys()){
       var group = testGroups[groupName];
-      write('  Group $groupName (lvl ${group.level}): ');
+      write('  Group $groupName: ');
       var vars = group.variables;
       var res = {passed:0, failed:0, total:group.testcases.length};
       for(test in group.testcases){
@@ -52,14 +52,14 @@ class Test{
         }
 
         var good;
-        if(exp == false){
+        if(Std.is(exp, Array)){
+          good = exp.indexOf(out) != -1 && err == null;
+        }
+        else if(exp == false){
           good = out == null && err != null;
         }
         else if(Std.is(exp, String)){
           good = out == exp && err == null;
-        }
-        else if(Std.is(exp, Array)){
-          good = exp.indexOf(out) != -1 && err == null;
         }
         else{
           throw 'invalid testcase';
@@ -71,10 +71,14 @@ class Test{
         else{
           res.failed++;
         }
-        if(!good) log.add('    "$tpl" => $exp failed\n');
+        if(!good){
+          if(err == null) log.add('    "$tpl" => $exp got "$out"\n');
+          else log.add('    "$tpl" => $exp error ${Std.string(err)}\n');
+        }
         write(good ? '+' : '-');
       }
       write(' ${res.passed}/${res.total}\n');
+
       if(res.failed > 0) write(log.toString());
 
       suiteRes.passed+= res.passed;
@@ -87,13 +91,25 @@ class Test{
 
   public static function main(){
     var good = true;
-    for(suiteName in ['extended-tests','negative-tests','spec-examples-by-section','spec-examples']){
+    var suites = [
+      'spec-examples',
+      'spec-examples-by-section',
+      'negative-tests',
+      'extended-tests',
+    ];
+
+    var all = {passed:0, failed:0, total:0};
+    for(suiteName in suites){
       write('Suite $suiteName\n');
       var res = runTests(getTests(suiteName));
       write('== ${res.passed}/${res.total}\n');
       good = good && res.failed == 0;
       write('\n');
+      all.passed+= res.passed;
+      all.failed+= res.failed;
+      all.total+= res.total;
     }
+    write('GRAND TOTAL: ${all.total} PASSED: ${all.passed} FAILED: ${all.failed}');
     exit(good ? 0 : 1);
   }
 
