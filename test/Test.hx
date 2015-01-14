@@ -26,8 +26,8 @@ class Test{
     return json;
   }
 
-  static function runTpl(tpl:String, vars:Dynamic):String{
-    throw 'not implemented';
+  static inline function runTpl(tpl:String, vars:Dynamic):String{
+    return UriTpl.run(tpl, vars);
   }
 
   static function runTests(testGroups:TestSuite){
